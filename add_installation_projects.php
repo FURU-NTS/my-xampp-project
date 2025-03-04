@@ -33,7 +33,7 @@ try {
     </div>
     <div class="form-group">
         <label for="order_date" class="required">受注日:</label>
-        <input type="date" id="order_date" name="order_date" required readonly>
+        <input type="date" id="order_date" name="order_date" required readonly style="background-color: #f0f0f0;">
     </div>
     <div class="form-group">
         <label for="new_schedule_date" class="required">新規予定日:</label>
@@ -42,7 +42,7 @@ try {
     <div class="form-group">
         <label for="status" class="required">ステータス:</label>
         <select id="status" name="status" required>
-            <option value="planning">計画中</option>
+            <option value="planning">段取り中</option>
             <option value="in_progress">進行中</option>
             <option value="completed">完了</option>
         </select>
