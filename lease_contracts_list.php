@@ -169,7 +169,7 @@ try {
 
         $headers = [
             '契約ID', '顧客企業', 'リース会社', '開始日', '終了日', '月額 (税込)', '回数', 
-            '支払済み回数', '残回数', '残債', 'リース機器', 'ステータス', '特案'
+            '支払済み回数', '残回数', '残債', 'リース機器', 'メモ', 'ステータス', '特案'
         ];
         fputcsv($output, $headers);
 
@@ -189,6 +189,7 @@ try {
                 $remaining_payments,
                 number_format($remaining_balance, 0),
                 $equipment_data[$item['contract_id']] ?? '',
+                $item['memo'] ?? '',
                 translateStatus($item['status']),
                 $item['special_case'] === '補償' ? '補償' : ''
             ];
@@ -341,6 +342,7 @@ try {
         <th>残回数</th>
         <th>残債</th>
         <th>リース機器</th>
+        <th>メモ</th>
         <th>ステータス</th>
         <th>特案</th>
         <th>アクション</th>
@@ -363,6 +365,7 @@ try {
         <td><?php echo htmlspecialchars($remaining_payments); ?></td>
         <td><?php echo number_format($remaining_balance, 0); ?> 円</td>
         <td><?php echo htmlspecialchars($equipment_data[$item['contract_id']] ?? ''); ?></td>
+        <td><?php echo htmlspecialchars($item['memo'] ?? ''); ?></td>
         <td><?php echo translateStatus($item['status']); ?></td>
         <td><?php echo htmlspecialchars($item['special_case'] === '補償' ? '補償' : ''); ?></td>
         <td>
@@ -373,7 +376,7 @@ try {
     <?php 
         }
     } else {
-        echo "<tr><td colspan='14'>データが見つかりません。</td></tr>";
+        echo "<tr><td colspan='15'>データが見つかりません。</td></tr>";
     }
     ?>
 </table>

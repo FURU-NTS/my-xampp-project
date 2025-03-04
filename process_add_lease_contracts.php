@@ -15,8 +15,9 @@ try {
     $end_date = $_POST['end_date'] ?? '';
     $monthly_fee = $_POST['monthly_fee'] ?? '';
     $total_payments = $_POST['total_payments'] ?? '';
-    $special_case = $_POST['special_case'] ?? '';
+    $special_case = $_POST['special_case'] ?? ''; // 空でもOKにする
     $status = $_POST['status'] ?? '';
+    $memo = $_POST['memo'] ?? '';
     $equipment_ids = $_POST['equipment_ids'] ?? [];
 
     $missing_fields = [];
@@ -26,7 +27,6 @@ try {
     if (empty($end_date)) $missing_fields[] = 'end_date';
     if (empty($monthly_fee)) $missing_fields[] = 'monthly_fee';
     if (empty($total_payments)) $missing_fields[] = 'total_payments';
-    if ($special_case === '' && !empty($credit_application_id)) $missing_fields[] = 'special_case';
     if (empty($status)) $missing_fields[] = 'status';
 
     if (!empty($missing_fields)) {
@@ -48,10 +48,11 @@ try {
     $conn->beginTransaction();
 
     $stmt = $conn->prepare(
-        "INSERT INTO lease_contracts (credit_application_id, company_id, provider_id, start_date, end_date, monthly_fee, total_payments, payments_made, special_case, status) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO lease_contracts (credit_application_id, company_id, provider_id, start_date, end_date, monthly_fee, total_payments, payments_made, special_case, status, memo) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->execute([$credit_application_id, $company_id, $provider_id, $start_date, $end_date, $monthly_fee, $total_payments, $payments_made, $special_case, $status]);
+    $stmt->execute([$credit_application_id, $company_id, $provider_id, $start_date, $end_date, $monthly_fee, $total_payments, $payments_made, $special_case, $status, $memo]);
+
     $contract_id = $conn->lastInsertId();
 
     if (!empty($equipment_ids)) {

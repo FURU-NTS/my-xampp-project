@@ -1,6 +1,6 @@
 <?php
 include_once 'db_connection.php';
-$page_title = "工事プロジェクト編集";
+$page_title = "新規工事プロジェクト編集";
 include_once 'header.php'; // ここでsession_start()が呼ばれてる
 
 try {

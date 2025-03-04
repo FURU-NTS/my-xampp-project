@@ -104,7 +104,7 @@ if (isset($_GET['status']) && isset($_GET['message'])) {
     <div class="form-group">
         <label for="monthly_fee" class="required">リース月額 (税込):</label>
         <select id="monthly_fee" name="monthly_fee" disabled required>
-            <option value="<?php echo htmlspecialchars($monthly_fee); ?>" selected><?php echo number_format($monthly_fee, 2); ?> 円</option>
+            <option value="<?php echo htmlspecialchars($monthly_fee); ?>" selected><?php echo number_format($monthly_fee, 0); ?> 円</option>
         </select>
         <input type="hidden" name="monthly_fee" value="<?php echo htmlspecialchars($monthly_fee); ?>">
     </div>
@@ -146,6 +146,10 @@ if (isset($_GET['status']) && isset($_GET['message'])) {
             <option value="expired">満了</option>
             <option value="lost_to_competitor">他社流出</option>
         </select>
+    </div>
+    <div class="form-group">
+        <label for="memo">メモ:</label>
+        <textarea id="memo" name="memo"></textarea>
     </div>
     <div style="margin-top: 10px;">
         <input type="submit" value="追加" style="margin-right: 10px;">

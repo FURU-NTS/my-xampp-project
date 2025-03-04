@@ -105,7 +105,7 @@ try {
     }
     ?>
 </table>
-<a href="add_installation_tasks.php">工事タスク追加</a>
+<a href="add_installation_tasks.php">新規工事タスク追加</a>
 </body></html>
 <?php
 } catch (Exception $e) {

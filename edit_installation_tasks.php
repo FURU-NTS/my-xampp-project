@@ -1,6 +1,6 @@
 <?php
 include_once 'db_connection.php';
-$page_title = "工事タスク編集";
+$page_title = "新規工事タスク編集";
 include_once 'header.php';
 
 try {
@@ -29,8 +29,13 @@ try {
     $task_options = [
         '見積機器納品', '見積機器設定', 'PC設定', '配線整理', 'Sメッシュ設置', 
         'Sラック設置', 'Sカメラ設置', 'Sパソコン設置', 'VPN構築', '他サービス品納品', 
-        '機器撤去', '機器預かり', '書類預かり'
+        '機器撤去', '機器預かり', '書類預かり', '各種コンサル', 'HP.SNSサポート', 'その他'
     ];
+
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    $csrf_token = $_SESSION['csrf_token'];
 
     if (isset($_GET['status']) && isset($_GET['message'])) {
         $class = $_GET['status'] === 'success' ? 'success' : 'error';
@@ -47,6 +52,7 @@ try {
     .readonly { background-color: #f0f0f0; border: 1px solid #ccc; }
 </style>
 <form method="POST" action="process_edit_installation_tasks.php">
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
     <input type="hidden" name="task_id" value="<?php echo htmlspecialchars($item['task_id']); ?>">
     <div class="form-group">
         <label for="project_id" class="required">プロジェクト:</label>
