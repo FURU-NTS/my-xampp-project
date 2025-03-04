@@ -1,55 +1,122 @@
 <?php
 include_once 'db_connection.php';
 $page_title = "工事プロジェクト編集";
-include_once 'header.php';
+include_once 'header.php'; // ここでsession_start()が呼ばれてる
 
 try {
     $conn = getDBConnection();
-    $project_id = $_GET['project_id'] ?? '';
-    if (empty($project_id)) throw new Exception('プロジェクトIDが指定されていません');
 
-    $stmt = $conn->prepare("SELECT * FROM installation_projects WHERE project_id = ?");
-    $stmt->execute([$project_id]);
-    $item = $stmt->fetch();
-    if (!$item) throw new Exception('工事プロジェクトが見つかりません');
+    if (!isset($_GET['project_id']) || empty($_GET['project_id'])) {
+        echo "プロジェクトが指定されていません。";
+        echo '<br><a href="installation_projects_list.php">一覧に戻る</a>';
+        exit;
+    }
 
-    $stmt = $conn->query("SELECT lc.contract_id, c.company_name FROM lease_contracts lc LEFT JOIN companies c ON lc.company_id = c.company_id");
-    $contracts = $stmt->fetchAll();
+    $id = $_GET['project_id'];
+    $sql = "SELECT ip.project_id, c.company_name, o.order_date, 
+                   ip.new_schedule_date, ip.memo, ip.status, o.negotiation_status, ip.order_id
+            FROM installation_projects ip
+            LEFT JOIN orders o ON ip.order_id = o.id
+            LEFT JOIN companies c ON o.company_id = c.company_id
+            WHERE ip.project_id = :id";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    $project = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$project) {
+        echo "プロジェクトが見つかりません（ID: " . htmlspecialchars($id) . "）。";
+        echo '<br><a href="installation_projects_list.php">一覧に戻る</a>';
+        exit;
+    }
+
+    // ordersから顧客名と受注日を取得
+    $stmt_orders = $conn->query("SELECT id, customer_name, order_date 
+                                 FROM orders 
+                                 WHERE negotiation_status IN ('進行中', '与信怪しい', '書換完了') 
+                                 ORDER BY customer_name");
+    $orders = $stmt_orders->fetchAll(PDO::FETCH_ASSOC);
+
+    // ステータス翻訳
+    $statusTranslations = [
+        'planning' => '段取り中',
+        'in_progress' => '進行中',
+        'completed' => '完了'
+    ];
+
+    // CSRFトークン生成
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    $csrf_token = $_SESSION['csrf_token'];
 ?>
+<style>
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+    .form-group input, .form<|control697|>group select, .form-group textarea { 
+        width: 100%; max-width: 300px; padding: 5px; box-sizing: border-box; 
+    }
+    .required::after { content: " *"; color: red; }
+    .readonly { background-color: #f0f0f0; }
+</style>
 <form method="POST" action="process_edit_installation_projects.php">
-    <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-    <input type="hidden" name="project_id" value="<?php echo htmlspecialchars($item['project_id']); ?>">
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
     <div class="form-group">
-        <label for="contract_id" class="required">契約:</label>
-        <select id="contract_id" name="contract_id" required>
+        <label>ID:</label>
+        <input type="text" value="<?php echo htmlspecialchars($project['project_id']); ?>" readonly class="readonly">
+        <input type="hidden" name="project_id" value="<?php echo htmlspecialchars($project['project_id']); ?>">
+    </div>
+    <div class="form-group">
+        <label for="order_id">顧客名（受注）:</label>
+        <select id="order_id" name="order_id" readonly class="readonly" onchange="updateOrderDate(this)" disabled>
             <option value="">選択してください</option>
-            <?php foreach ($contracts as $contract) {
-                $selected = $contract['contract_id'] == $item['contract_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($contract['contract_id']) . "' $selected>" . htmlspecialchars($contract['company_name'] . " (ID: " . $contract['contract_id'] . ")") . "</option>";
+            <?php foreach ($orders as $order) {
+                $selected = $project['order_id'] == $order['id'] ? 'selected' : '';
+                echo "<option value='" . htmlspecialchars($order['id']) . "' data-order-date='" . htmlspecialchars($order['order_date']) . "' $selected>" . htmlspecialchars($order['customer_name']) . "</option>";
             } ?>
         </select>
     </div>
     <div class="form-group">
+        <label for="order_date">受注日:</label>
+        <input type="date" id="order_date" name="order_date" value="<?php echo htmlspecialchars($project['order_date']); ?>" readonly class="readonly">
+    </div>
+    <div class="form-group">
+        <label for="new_schedule_date" class="required">新規予定日:</label>
+        <input type="date" id="new_schedule_date" name="new_schedule_date" value="<?php echo htmlspecialchars($project['new_schedule_date']); ?>" required>
+    </div>
+    <div class="form-group">
+        <label for="memo">メモ:</label>
+        <textarea id="memo" name="memo"><?php echo htmlspecialchars($project['memo'] ?? ''); ?></textarea>
+    </div>
+    <div class="form-group">
         <label for="status" class="required">ステータス:</label>
         <select id="status" name="status" required>
-            <option value="planning" <?php echo $item['status'] === 'planning' ? 'selected' : ''; ?>>planning</option>
-            <option value="in_progress" <?php echo $item['status'] === 'in_progress' ? 'selected' : ''; ?>>in_progress</option>
-            <option value="completed" <?php echo $item['status'] === 'completed' ? 'selected' : ''; ?>>completed</option>
+            <?php foreach ($statusTranslations as $key => $value) {
+                $selected = $project['status'] == $key ? 'selected' : '';
+                echo "<option value='$key' $selected>$value</option>";
+            } ?>
         </select>
     </div>
     <div class="form-group">
-        <label for="start_date">開始日:</label>
-        <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($item['start_date'] ?? ''); ?>">
+        <label for="negotiation_status">商談ステータス:</label>
+        <input type="text" id="negotiation_status" value="<?php echo htmlspecialchars($project['negotiation_status'] ?? ''); ?>" readonly class="readonly">
     </div>
-    <div class="form-group">
-        <label for="end_date">終了日:</label>
-        <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($item['end_date'] ?? ''); ?>">
+    <div>
+        <input type="submit" value="更新">
+        <input type="button" value="キャンセル" onclick="window.location.href='installation_projects_list.php';">
     </div>
-    <input type="submit" value="更新">
 </form>
-</body></html>
+
+<script>
+function updateOrderDate(select) {
+    var orderDate = select.options[select.selectedIndex].getAttribute('data-order-date');
+    document.getElementById('order_date').value = orderDate;
+}
+</script>
+</body>
+</html>
 <?php
 } catch (Exception $e) {
+    error_log("Error in edit_installation_projects.php: " . $e->getMessage());
     echo '<p class="error">' . htmlspecialchars($e->getMessage()) . '</p>';
 }
 ?>

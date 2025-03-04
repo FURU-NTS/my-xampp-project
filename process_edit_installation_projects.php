@@ -1,31 +1,48 @@
 <?php
 include_once 'db_connection.php';
-include_once 'config.php';
+session_start();
 
 try {
     $conn = getDBConnection();
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('無効なリクエストメソッドです');
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) throw new Exception('CSRFトークンが無効です');
 
-    $project_id = $_POST['project_id'] ?? '';
-    $contract_id = $_POST['contract_id'] ?? '';
-    $status = $_POST['status'] ?? '';
-    $start_date = $_POST['start_date'] ?? null;
-    $end_date = $_POST['end_date'] ?? null;
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception("不正なリクエストです。");
+    }
 
-    if (empty($project_id) || empty($contract_id) || empty($status)) throw new Exception('ID、契約、ステータスは必須です');
-    if ($start_date && $end_date && $start_date > $end_date) throw new Exception('開始日は終了日より前でなければなりません');
+    // CSRFトークン検証
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        header("Location: edit_installation_projects.php?project_id=" . urlencode($_POST['project_id']) . "&status=error&message=" . urlencode("CSRFトークンが無効です"));
+        exit;
+    }
 
-    $stmt = $conn->prepare(
-        "UPDATE installation_projects SET contract_id = ?, status = ?, start_date = ?, end_date = ? 
-         WHERE project_id = ?"
-    );
-    $stmt->execute([$contract_id, $status, $start_date ?: null, $end_date ?: null, $project_id]);
+    if (!isset($_POST['project_id']) || empty($_POST['project_id'])) {
+        throw new Exception("プロジェクトIDが指定されていません。");
+    }
 
-    header('Location: installation_projects_list.php?status=success&message=工事プロジェクトが更新されました');
+    $id = $_POST['project_id'];
+    $new_schedule_date = $_POST['new_schedule_date'];
+    $memo = $_POST['memo'];
+    $status = $_POST['status'];
+
+    // 更新SQL（編集可能項目のみ）
+    $sql = "UPDATE installation_projects 
+            SET new_schedule_date = :new_schedule_date, 
+                memo = :memo, 
+                status = :status 
+            WHERE project_id = :id";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        'new_schedule_date' => $new_schedule_date,
+        'memo' => $memo,
+        'status' => $status,
+        'id' => $id
+    ]);
+
+    header("Location: installation_projects_list.php");
     exit;
 } catch (Exception $e) {
-    header('Location: edit_installation_projects.php?project_id=' . urlencode($_POST['project_id']) . '&status=error&message=' . urlencode($e->getMessage()));
+    error_log("Error in process_edit_installation_projects.php: " . $e->getMessage());
+    header("Location: edit_installation_projects.php?project_id=" . urlencode($_POST['project_id']) . "&status=error&message=" . urlencode($e->getMessage()));
     exit;
 }
 ?>
