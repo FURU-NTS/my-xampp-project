@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2025-03-04 12:30:08
+-- 生成日時: 2025-03-04 20:38:22
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -50,6 +50,10 @@ CREATE TABLE `companies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `companies`:
+--
 
 --
 -- テーブルのデータのダンプ `companies`
@@ -139,12 +143,26 @@ CREATE TABLE `credit_applications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- テーブルのリレーション `credit_applications`:
+--   `company_id`
+--       `companies` -> `company_id`
+--   `provider_id`
+--       `lease_providers` -> `provider_id`
+--   `contract_id`
+--       `lease_contracts` -> `contract_id`
+--   `order_id`
+--       `orders` -> `id`
+--   `order_id`
+--       `orders` -> `id`
+--
+
+--
 -- テーブルのデータのダンプ `credit_applications`
 --
 
 INSERT INTO `credit_applications` (`application_id`, `company_id`, `contract_id`, `order_id`, `provider_id`, `application_date`, `monthly_fee`, `total_payments`, `expected_payment`, `expected_payment_date`, `status`, `special_case`, `memo`) VALUES
 (11, 40, NULL, 17, 2, '2025-02-27', 23400.00, 84, 1618430.00, '0000-00-00', '与信OK', '', 'ZAC　MRT　決算書\r\n'),
-(12, 40, NULL, 17, 3, '2025-02-27', 23400.00, 84, 1505240.00, NULL, '与信OK', '', NULL),
+(12, 40, NULL, 17, 3, '2025-02-27', 23400.00, 84, 1505240.00, NULL, '入金完了', '', ''),
 (14, 39, NULL, 18, 3, '2025-03-13', 22000.00, 84, 2500000.00, NULL, '手続き待ち', '', '');
 
 -- --------------------------------------------------------
@@ -163,6 +181,10 @@ CREATE TABLE `employees` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `employees`:
+--
 
 --
 -- テーブルのデータのダンプ `employees`
@@ -184,18 +206,18 @@ INSERT INTO `employees` (`employee_id`, `full_name`, `email`, `phone_number`, `d
 (14, '浜田', '', '', 'アポイント', '主任', '2025-02-28 07:31:56', '2025-03-04 02:18:18'),
 (15, '三坂', '', '', 'アポイント', '派遣社員', '2025-02-28 07:32:26', '2025-03-04 02:18:27'),
 (16, '永井', '', '', '管理', '主査', '2025-02-28 07:33:54', '2025-03-04 02:22:05'),
-(17, '上丸', '', '', 'SE', '主任', '2025-02-28 07:34:15', '2025-03-04 02:20:16'),
-(18, '松尾', '', '', 'SE', '主任', '2025-02-28 07:34:48', '2025-03-04 02:20:36'),
-(19, '菅野', '', '', 'SE', 'リーダー', '2025-02-28 07:35:20', '2025-03-04 02:20:27'),
-(20, '森', '', '', 'リモート', '主任', '2025-02-28 07:36:44', '2025-03-04 02:18:51'),
-(21, '土師', '', '', 'リモート', '主任', '2025-02-28 07:37:10', '2025-03-04 02:18:42'),
-(22, '清水', '', '', '工事', '主任', '2025-02-28 07:37:42', '2025-03-04 02:19:16'),
-(23, '松崎', '', '', '㈱オーバークロック', '代表取締役', '2025-02-28 07:38:47', '2025-02-28 07:38:47'),
-(24, '西田', '', '', '㈱オーバークロック', '社員', '2025-02-28 07:39:07', '2025-02-28 07:39:07'),
-(25, '大浦', '', '', '㈲イージーアイ', '社員', '2025-02-28 07:40:40', '2025-02-28 07:40:40'),
-(26, '手塚', '', '', 'PCQQ', '代表', '2025-02-28 07:41:29', '2025-02-28 07:41:29'),
-(27, '稲垣', '', '', 'レインボー', '代表', '2025-02-28 07:42:01', '2025-02-28 07:42:27'),
-(28, '小島', '', '', '工事', '主任', '2025-02-28 07:43:30', '2025-03-04 02:19:30');
+(17, '上丸', '', '', '【SE】', '主任', '2025-02-28 07:34:15', '2025-03-04 09:44:11'),
+(18, '松尾', '', '', '【SE】', '主任', '2025-02-28 07:34:48', '2025-03-04 09:44:24'),
+(19, '菅野', '', '', '【SE】', 'リーダー', '2025-02-28 07:35:20', '2025-03-04 09:44:37'),
+(20, '森', '', '', '【リモート】', '主任', '2025-02-28 07:36:44', '2025-03-04 09:45:21'),
+(21, '土師', '', '', '【リモート】', '主任', '2025-02-28 07:37:10', '2025-03-04 09:45:32'),
+(22, '清水', '', '', '【工事】', '主任', '2025-02-28 07:37:42', '2025-03-04 09:44:56'),
+(23, '松崎', '', '', '【㈱オーバークロック】', '代表取締役', '2025-02-28 07:38:47', '2025-03-04 09:46:00'),
+(24, '西田', '', '', '【㈱オーバークロック】', '社員', '2025-02-28 07:39:07', '2025-03-04 09:46:11'),
+(25, '大浦', '', '', '【㈲イージーアイ】', '社員', '2025-02-28 07:40:40', '2025-03-04 09:46:21'),
+(26, '手塚', '', '', '【PCQQ】', '代表', '2025-02-28 07:41:29', '2025-03-04 09:46:32'),
+(27, '稲垣', '', '', '【レインボー】', '代表', '2025-02-28 07:42:01', '2025-03-04 09:46:42'),
+(28, '小島', '', '', '【工事】', '主任', '2025-02-28 07:43:30', '2025-03-04 09:45:08');
 
 -- --------------------------------------------------------
 
@@ -211,6 +233,10 @@ CREATE TABLE `equipment_master` (
   `model_number` varchar(255) DEFAULT NULL,
   `price` decimal(15,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `equipment_master`:
+--
 
 --
 -- テーブルのデータのダンプ `equipment_master`
@@ -252,18 +278,28 @@ CREATE TABLE `installation_projects` (
   `status` enum('planning','in_progress','completed') NOT NULL,
   `memo` text DEFAULT NULL,
   `new_schedule_date` date NOT NULL,
-  `end_date` date DEFAULT NULL
+  `end_date` date DEFAULT NULL,
+  `contract_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `installation_projects`:
+--   `order_id`
+--       `orders` -> `id`
+--   `contract_id`
+--       `lease_contracts` -> `contract_id`
+--
 
 --
 -- テーブルのデータのダンプ `installation_projects`
 --
 
-INSERT INTO `installation_projects` (`project_id`, `order_id`, `order_date`, `status`, `memo`, `new_schedule_date`, `end_date`) VALUES
-(1, 17, '2025-02-27', 'planning', '配線工事の準備中', '2025-03-03', '2025-06-30'),
-(2, 18, '2025-02-28', 'in_progress', '機器設置予定', '2025-03-01', '2025-05-31'),
-(3, 18, '2025-02-28', 'in_progress', NULL, '2025-03-03', '2025-03-08'),
-(4, 19, '2025-02-28', 'planning', NULL, '2025-03-04', NULL);
+INSERT INTO `installation_projects` (`project_id`, `order_id`, `order_date`, `status`, `memo`, `new_schedule_date`, `end_date`, `contract_id`) VALUES
+(2, 18, '2025-02-28', 'in_progress', '機器設置予定', '2025-03-01', '2025-05-31', NULL),
+(5, 19, '2025-02-28', 'planning', NULL, '2025-03-05', NULL, NULL),
+(6, 19, '2025-02-28', 'planning', NULL, '2025-03-08', NULL, NULL),
+(7, 18, '2025-02-28', 'planning', '789', '2025-03-29', NULL, NULL),
+(8, 19, '2025-02-28', 'planning', NULL, '2025-03-08', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -274,7 +310,7 @@ INSERT INTO `installation_projects` (`project_id`, `order_id`, `order_date`, `st
 CREATE TABLE `installation_tasks` (
   `task_id` int(11) NOT NULL,
   `project_id` int(11) DEFAULT NULL,
-  `task_name` enum('見積機器納品','見積機器設定','PC設定','配線整理','Sメッシュ設置','Sラック設置','Sカメラ設置','Sパソコン設置','VPN構築','他サービス品納品','機器撤去','機器預かり','書類預かり') NOT NULL,
+  `task_name` enum('見積機器納品','見積機器設定','PC設定','配線整理','Sメッシュ設置','Sラック設置','Sカメラ設置','Sパソコン設置','VPN構築','他サービス品納品','機器撤去','機器預かり','書類預かり','各種コンサル','HP.SNSサポート','その他') DEFAULT NULL,
   `status` enum('not_started','in_progress','completed') NOT NULL,
   `memo` text DEFAULT NULL,
   `start_date` date DEFAULT NULL,
@@ -284,25 +320,29 @@ CREATE TABLE `installation_tasks` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- テーブルのリレーション `installation_tasks`:
+--   `project_id`
+--       `installation_projects` -> `project_id`
+--   `employee_id_1`
+--       `employees` -> `employee_id`
+--   `employee_id_2`
+--       `employees` -> `employee_id`
+--
+
+--
 -- テーブルのデータのダンプ `installation_tasks`
 --
 
 INSERT INTO `installation_tasks` (`task_id`, `project_id`, `task_name`, `status`, `memo`, `start_date`, `end_date`, `employee_id_1`, `employee_id_2`) VALUES
-(1, 1, '見積機器納品', 'not_started', '電源確認済み', '2025-03-05', NULL, 7, 10),
-(2, 1, '配線整理', 'in_progress', '設定中', '2025-03-06', NULL, 8, NULL),
 (3, 2, '他サービス品納品', 'in_progress', '撤去予定', '2025-03-01', '2025-03-02', 14, 9),
 (4, 2, '見積機器納品', 'in_progress', '', '2025-03-06', '2025-03-03', 18, NULL),
-(5, 2, '見積機器設定', 'not_started', '', '2025-03-06', NULL, 18, NULL),
-(6, 2, 'PC設定', 'in_progress', '', '2025-03-06', NULL, 18, NULL),
+(5, 2, '見積機器設定', 'completed', '', '2025-03-06', '2025-03-03', 18, NULL),
 (7, 2, '配線整理', 'not_started', '', '2025-03-06', NULL, 18, NULL),
-(8, 2, '他サービス品納品', 'completed', '', '2025-03-06', NULL, 18, NULL),
-(9, 1, 'PC設定', 'completed', NULL, '2025-03-03', '2025-03-03', NULL, NULL),
-(10, 4, '見積機器納品', 'not_started', '', NULL, NULL, 10, NULL),
-(11, 4, '見積機器設定', 'not_started', '', NULL, NULL, 10, NULL),
-(12, 4, 'PC設定', 'not_started', '', NULL, NULL, 10, NULL),
-(13, 4, '配線整理', 'not_started', '', NULL, NULL, 10, NULL),
-(14, 4, 'Sメッシュ設置', 'not_started', '', NULL, NULL, 10, NULL),
-(15, 4, 'VPN構築', 'not_started', '', NULL, NULL, 10, NULL);
+(16, 5, '見積機器納品', 'in_progress', '', '2025-03-03', NULL, NULL, NULL),
+(17, 5, '見積機器設定', 'not_started', '', NULL, NULL, NULL, NULL),
+(18, 5, 'PC設定', 'not_started', '', NULL, NULL, NULL, NULL),
+(19, 5, 'HP.SNSサポート', 'not_started', '', NULL, NULL, NULL, NULL),
+(20, 5, 'その他', 'not_started', '', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -319,13 +359,25 @@ CREATE TABLE `leased_equipment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- テーブルのリレーション `leased_equipment`:
+--   `equipment_id`
+--       `equipment_master` -> `equipment_id`
+--   `contract_id`
+--       `lease_contracts` -> `contract_id`
+--
+
+--
 -- テーブルのデータのダンプ `leased_equipment`
 --
 
 INSERT INTO `leased_equipment` (`leased_equipment_id`, `equipment_id`, `contract_id`, `installation_date`, `last_maintenance_date`) VALUES
-(64, 9, 16, NULL, NULL),
-(65, 10, 16, NULL, NULL),
-(66, 12, 16, NULL, NULL);
+(74, 9, 18, NULL, NULL),
+(75, 10, 18, NULL, NULL),
+(76, 11, 18, NULL, NULL),
+(77, 12, 18, NULL, NULL),
+(78, 9, 16, NULL, NULL),
+(79, 10, 16, NULL, NULL),
+(80, 12, 16, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -344,15 +396,27 @@ CREATE TABLE `lease_contracts` (
   `status` enum('contract_active','offsetting','early_termination','expired','lost_to_competitor') NOT NULL,
   `credit_application_id` int(11) DEFAULT NULL,
   `special_case` enum('','補償') DEFAULT '',
-  `payments_made` int(11) DEFAULT 0
+  `payments_made` int(11) DEFAULT 0,
+  `memo` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `lease_contracts`:
+--   `company_id`
+--       `companies` -> `company_id`
+--   `provider_id`
+--       `lease_providers` -> `provider_id`
+--   `credit_application_id`
+--       `credit_applications` -> `application_id`
+--
 
 --
 -- テーブルのデータのダンプ `lease_contracts`
 --
 
-INSERT INTO `lease_contracts` (`contract_id`, `company_id`, `provider_id`, `start_date`, `end_date`, `monthly_fee`, `total_payments`, `status`, `credit_application_id`, `special_case`, `payments_made`) VALUES
-(16, 40, 2, '2025-03-03', '2025-03-22', 23400.00, 84, 'contract_active', 11, '補償', 0);
+INSERT INTO `lease_contracts` (`contract_id`, `company_id`, `provider_id`, `start_date`, `end_date`, `monthly_fee`, `total_payments`, `status`, `credit_application_id`, `special_case`, `payments_made`, `memo`) VALUES
+(16, 40, 2, '2025-03-03', '2025-03-22', 23400.00, 84, 'contract_active', 11, '補償', 0, NULL),
+(18, 40, 3, '2025-03-08', '2025-04-05', 23400.00, 84, 'contract_active', 12, '', 0, '1234568');
 
 -- --------------------------------------------------------
 
@@ -372,6 +436,10 @@ CREATE TABLE `lease_providers` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `lease_providers`:
+--
 
 --
 -- テーブルのデータのダンプ `lease_providers`
@@ -399,6 +467,12 @@ CREATE TABLE `maintenance_records` (
   `next_maintenance_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- テーブルのリレーション `maintenance_records`:
+--   `lease_device_id`
+--       `leased_equipment` -> `leased_equipment_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -411,6 +485,12 @@ CREATE TABLE `maintenance_requests` (
   `status` enum('new','in_progress','completed') NOT NULL,
   `request_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `maintenance_requests`:
+--   `order_id`
+--       `orders` -> `id`
+--
 
 -- --------------------------------------------------------
 
@@ -442,6 +522,26 @@ CREATE TABLE `orders` (
   `rewriting_person_id` int(11) DEFAULT NULL,
   `company_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `orders`:
+--   `sales_rep_id`
+--       `employees` -> `employee_id`
+--   `sales_rep_id_2`
+--       `employees` -> `employee_id`
+--   `sales_rep_id_3`
+--       `employees` -> `employee_id`
+--   `sales_rep_id_4`
+--       `employees` -> `employee_id`
+--   `appointment_rep_id_1`
+--       `employees` -> `employee_id`
+--   `appointment_rep_id_2`
+--       `employees` -> `employee_id`
+--   `rewriting_person_id`
+--       `employees` -> `employee_id`
+--   `company_id`
+--       `companies` -> `company_id`
+--
 
 --
 -- テーブルのデータのダンプ `orders`
@@ -484,6 +584,14 @@ CREATE TABLE `order_details` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- テーブルのリレーション `order_details`:
+--   `order_id`
+--       `orders` -> `id`
+--   `sales_rep_id`
+--       `employees` -> `employee_id`
+--
+
+--
 -- テーブルのデータのダンプ `order_details`
 --
 
@@ -503,6 +611,14 @@ CREATE TABLE `sales_points` (
   `points` int(11) NOT NULL,
   `date_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- テーブルのリレーション `sales_points`:
+--   `order_id`
+--       `orders` -> `id`
+--   `sales_rep_id`
+--       `employees` -> `employee_id`
+--
 
 --
 -- ダンプしたテーブルのインデックス
@@ -541,7 +657,8 @@ ALTER TABLE `equipment_master`
 --
 ALTER TABLE `installation_projects`
   ADD PRIMARY KEY (`project_id`),
-  ADD KEY `order_id` (`order_id`);
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `contract_id` (`contract_id`);
 
 --
 -- テーブルのインデックス `installation_tasks`
@@ -651,25 +768,25 @@ ALTER TABLE `equipment_master`
 -- テーブルの AUTO_INCREMENT `installation_projects`
 --
 ALTER TABLE `installation_projects`
-  MODIFY `project_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `project_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- テーブルの AUTO_INCREMENT `installation_tasks`
 --
 ALTER TABLE `installation_tasks`
-  MODIFY `task_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `task_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- テーブルの AUTO_INCREMENT `leased_equipment`
 --
 ALTER TABLE `leased_equipment`
-  MODIFY `leased_equipment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `leased_equipment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- テーブルの AUTO_INCREMENT `lease_contracts`
 --
 ALTER TABLE `lease_contracts`
-  MODIFY `contract_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `contract_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- テーブルの AUTO_INCREMENT `lease_providers`
@@ -725,7 +842,8 @@ ALTER TABLE `credit_applications`
 -- テーブルの制約 `installation_projects`
 --
 ALTER TABLE `installation_projects`
-  ADD CONSTRAINT `installation_projects_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
+  ADD CONSTRAINT `installation_projects_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  ADD CONSTRAINT `installation_projects_ibfk_2` FOREIGN KEY (`contract_id`) REFERENCES `lease_contracts` (`contract_id`);
 
 --
 -- テーブルの制約 `installation_tasks`
