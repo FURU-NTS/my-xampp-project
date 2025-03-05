@@ -27,7 +27,8 @@ try {
         <select id="order_id" name="order_id" required onchange="updateOrderDate(this)">
             <option value="">選択してください</option>
             <?php foreach ($orders as $order) {
-                echo "<option value='" . htmlspecialchars($order['id']) . "' data-order-date='" . htmlspecialchars($order['order_date']) . "'>" . htmlspecialchars($order['customer_name']) . "</option>";
+                $display_text = htmlspecialchars($order['customer_name']) . " (" . htmlspecialchars($order['order_date']) . ")";
+                echo "<option value='" . htmlspecialchars($order['id']) . "' data-order-date='" . htmlspecialchars($order['order_date']) . "'>" . $display_text . "</option>";
             } ?>
         </select>
     </div>
@@ -44,7 +45,6 @@ try {
         <select id="status" name="status" required>
             <option value="planning">段取り中</option>
             <option value="in_progress">進行中</option>
-            <option value="completed">完了</option>
         </select>
     </div>
     <div>

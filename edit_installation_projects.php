@@ -36,11 +36,10 @@ try {
                                  ORDER BY customer_name");
     $orders = $stmt_orders->fetchAll(PDO::FETCH_ASSOC);
 
-    // ステータス翻訳
+    // ステータス翻訳（completedを除外）
     $statusTranslations = [
         'planning' => '段取り中',
-        'in_progress' => '進行中',
-        'completed' => '完了'
+        'in_progress' => '進行中'
     ];
 
     // CSRFトークン生成
@@ -52,7 +51,7 @@ try {
 <style>
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-    .form-group input, .form<|control697|>group select, .form-group textarea { 
+    .form-group input, .form-group select, .form-group textarea { 
         width: 100%; max-width: 300px; padding: 5px; box-sizing: border-box; 
     }
     .required::after { content: " *"; color: red; }
