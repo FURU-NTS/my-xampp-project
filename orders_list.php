@@ -6,7 +6,7 @@ include_once 'header.php';
 
 try {
     $conn = getDBConnection();
-    $employees_stmt = $conn->query("SELECT employee_id, full_name FROM employees");
+    $employees_stmt = $conn->query("SELECT employee_id, full_name, department FROM employees ORDER BY department, full_name");
     $employees = $employees_stmt->fetchAll();
 
     $export_csv = isset($_GET['export_csv']) && $_GET['export_csv'] === '1';
@@ -21,6 +21,7 @@ try {
     $search_document_status = $_GET['document_status'] ?? '';
     $search_rewrite_status = $_GET['rewrite_status'] ?? '';
     $search_seal_status = $_GET['seal_status'] ?? '';
+    $search_shipping_status = $_GET['shipping_status'] ?? '';
     $search_sales_rep_1 = $_GET['sales_rep_1'] ?? '';
     $search_sales_rep_2 = $_GET['sales_rep_2'] ?? '';
     $search_sales_rep_3 = $_GET['sales_rep_3'] ?? '';
@@ -32,11 +33,11 @@ try {
     $search_max_monthly_fee = $_GET['max_monthly_fee'] ?? '';
 
     $query = "SELECT o.*, 
-              e1.full_name AS sales_rep_1, 
-              e2.full_name AS sales_rep_2, 
-              e3.full_name AS sales_rep_3, 
-              e4.full_name AS sales_rep_4, 
-              a1.full_name AS appointment_rep_1, 
+              e1.full_name AS sales_rep_1,
+              e2.full_name AS sales_rep_2,
+              e3.full_name AS sales_rep_3,
+              e4.full_name AS sales_rep_4,
+              a1.full_name AS appointment_rep_1,
               a2.full_name AS appointment_rep_2,
               r.full_name AS rewriting_person,
               (SELECT COALESCE(SUM(COALESCE(od.mobile_revision, 0) + COALESCE(od.monitor_total, 0) + COALESCE(od.service_total, 0)), 0)
@@ -94,6 +95,10 @@ try {
         $query .= " AND o.seal_certificate_status = ?";
         $params[] = $search_seal_status;
     }
+    if ($search_shipping_status) {
+        $query .= " AND o.shipping_status = ?";
+        $params[] = $search_shipping_status;
+    }
     if ($search_sales_rep_1) {
         $query .= " AND o.sales_rep_id = ?";
         $params[] = $search_sales_rep_1;
@@ -145,7 +150,7 @@ try {
         $headers = [
             '受注日', '顧客名', '客層', '月額 (税抜)', '回数', '見直し合計 (税込)', '商談ステータス', 
             '工事ステータス', '与信ステータス', '書類ステータス', '書換ステータス', '印鑑証明ステータス', 
-            'メモ', '担当者1', '担当者2', '担当者3', '担当者4', 'アポイント者1', 'アポイント者2', '書換担当'
+            '発送ステータス', 'メモ', '担当者1', '担当者2', '担当者3', '担当者4', 'アポイント者1', 'アポイント者2', '書換担当'
         ];
         fputcsv($output, $headers);
 
@@ -163,6 +168,7 @@ try {
                 $row['document_status'] ?? '',
                 $row['rewrite_status'] ?? '',
                 $row['seal_certificate_status'] ?? '',
+                $row['shipping_status'] ?? '',
                 $row['memo'] ?? '',
                 $row['sales_rep_1'] ?? '',
                 $row['sales_rep_2'] ?? '',
@@ -220,25 +226,38 @@ try {
             border-collapse: collapse; 
             table-layout: fixed;
         }
-        th, td { 
+        th { 
             border: 1px solid #ddd; 
             padding: 8px; 
             text-align: left; 
-            white-space: normal; 
+            white-space: normal; /* タイトル折り返し */
             overflow: hidden; 
             text-overflow: ellipsis; 
-        }
-        th { 
             background-color: #f2f2f2; 
             font-size: 0.9em; 
         }
-        /* ステータス列に背景色を復元 */
+        td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+            white-space: nowrap; /* デフォルトは折り返さない */
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        /* 受注日、顧客名、メモのデータだけ折り返し */
+        td:nth-child(1), /* 受注日 */
+        td:nth-child(2), /* 顧客名 */
+        td:nth-child(14) { /* メモ */
+            white-space: normal;
+        }
+        /* ステータス列に背景色 */
         th:nth-child(7), td:nth-child(7), /* 商談ステータス */
         th:nth-child(8), td:nth-child(8), /* 工事ステータス */
         th:nth-child(9), td:nth-child(9), /* 与信ステータス */
         th:nth-child(10), td:nth-child(10), /* 書類ステータス */
         th:nth-child(11), td:nth-child(11), /* 書換ステータス */
-        th:nth-child(12), td:nth-child(12) { /* 印鑑証明ステータス */
+        th:nth-child(12), td:nth-child(12), /* 印鑑証明ステータス */
+        th:nth-child(13), td:nth-child(13) { /* 発送ステータス */
             background-color: #e6f3ff; /* 薄い青 */
         }
         th:nth-child(1), td:nth-child(1) { width: 5%; }
@@ -253,15 +272,16 @@ try {
         th:nth-child(10), td:nth-child(10) { width: 6%; }
         th:nth-child(11), td:nth-child(11) { width: 6%; }
         th:nth-child(12), td:nth-child(12) { width: 6%; }
-        th:nth-child(13), td:nth-child(13) { width: 12%; }
-        th:nth-child(14), td:nth-child(14) { width: 5%; }
+        th:nth-child(13), td:nth-child(13) { width: 6%; }
+        th:nth-child(14), td:nth-child(14) { width: 12%; }
         th:nth-child(15), td:nth-child(15) { width: 5%; }
         th:nth-child(16), td:nth-child(16) { width: 5%; }
         th:nth-child(17), td:nth-child(17) { width: 5%; }
         th:nth-child(18), td:nth-child(18) { width: 5%; }
         th:nth-child(19), td:nth-child(19) { width: 5%; }
         th:nth-child(20), td:nth-child(20) { width: 5%; }
-        th:nth-child(21), td:nth-child(21) { width: 8%; }
+        th:nth-child(21), td:nth-child(21) { width: 5%; }
+        th:nth-child(22), td:nth-child(22) { width: 8%; }
         .success { color: green; }
         .error { color: red; }
     </style>
@@ -306,10 +326,10 @@ try {
         </div>
     </div>
     <div class="form-group">
-        <label for="negotiation_status">商談:</label>
+        <label for="negotiation_status">商談ステータス:</label>
         <select id="negotiation_status" name="negotiation_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
-            <option value="" <?php echo $search_negotiation_status === '' ? 'selected' : ''; ?>>未設定</option>
+            <option value="未設定" <?php echo $search_negotiation_status === '未設定' ? 'selected' : ''; ?>>未設定</option>
             <option value="進行中" <?php echo $search_negotiation_status === '進行中' ? 'selected' : ''; ?>>進行中</option>
             <option value="与信怪しい" <?php echo $search_negotiation_status === '与信怪しい' ? 'selected' : ''; ?>>与信怪しい</option>
             <option value="工事前再説" <?php echo $search_negotiation_status === '工事前再説' ? 'selected' : ''; ?>>工事前再説</option>
@@ -317,10 +337,12 @@ try {
             <option value="工事前キャンセル" <?php echo $search_negotiation_status === '工事前キャンセル' ? 'selected' : ''; ?>>工事前キャンセル</option>
             <option value="工事後キャンセル" <?php echo $search_negotiation_status === '工事後キャンセル' ? 'selected' : ''; ?>>工事後キャンセル</option>
             <option value="書換完了" <?php echo $search_negotiation_status === '書換完了' ? 'selected' : ''; ?>>書換完了</option>
+            <option value="承認完了" <?php echo $search_negotiation_status === '承認完了' ? 'selected' : ''; ?>>承認完了</option>
+            <option value="承認後キャンセル" <?php echo $search_negotiation_status === '承認後キャンセル' ? 'selected' : ''; ?>>承認後キャンセル</option>
         </select>
     </div>
     <div class="form-group">
-        <label for="construction_status">工事:</label>
+        <label for="construction_status">工事ステータス:</label>
         <select id="construction_status" name="construction_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <option value="待ち" <?php echo $search_construction_status === '待ち' ? 'selected' : ''; ?>>待ち</option>
@@ -331,7 +353,7 @@ try {
         </select>
     </div>
     <div class="form-group">
-        <label for="credit_status">与信:</label>
+        <label for="credit_status">与信ステータス:</label>
         <select id="credit_status" name="credit_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <option value="待ち" <?php echo $search_credit_status === '待ち' ? 'selected' : ''; ?>>待ち</option>
@@ -342,7 +364,7 @@ try {
         </select>
     </div>
     <div class="form-group">
-        <label for="document_status">書類:</label>
+        <label for="document_status">書類ステータス:</label>
         <select id="document_status" name="document_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <option value="待ち" <?php echo $search_document_status === '待ち' ? 'selected' : ''; ?>>待ち</option>
@@ -353,7 +375,7 @@ try {
         </select>
     </div>
     <div class="form-group">
-        <label for="rewrite_status">書換:</label>
+        <label for="rewrite_status">書換ステータス:</label>
         <select id="rewrite_status" name="rewrite_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <option value="待ち" <?php echo $search_rewrite_status === '待ち' ? 'selected' : ''; ?>>待ち</option>
@@ -364,7 +386,7 @@ try {
         </select>
     </div>
     <div class="form-group">
-        <label for="seal_status">印鑑証明:</label>
+        <label for="seal_status">印鑑証明ステータス:</label>
         <select id="seal_status" name="seal_status" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <option value="不要" <?php echo $search_seal_status === '不要' ? 'selected' : ''; ?>>不要</option>
@@ -374,12 +396,21 @@ try {
         </select>
     </div>
     <div class="form-group">
+        <label for="shipping_status">発送ステータス:</label>
+        <select id="shipping_status" name="shipping_status" onkeydown="preventEnterSubmit(event)">
+            <option value="" <?php echo $search_shipping_status === '' ? 'selected' : ''; ?>>すべて</option>
+            <option value="準備中" <?php echo $search_shipping_status === '準備中' ? 'selected' : ''; ?>>準備中</option>
+            <option value="発送済" <?php echo $search_shipping_status === '発送済' ? 'selected' : ''; ?>>発送済</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="sales_rep_1">担当者1:</label>
         <select id="sales_rep_1" name="sales_rep_1" onkeydown="preventEnterSubmit(event)">
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_sales_rep_1 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -389,7 +420,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_sales_rep_2 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -399,7 +431,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_sales_rep_3 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -409,7 +442,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_sales_rep_4 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -419,7 +453,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_appointment_1 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -429,7 +464,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_appointment_2 == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -439,7 +475,8 @@ try {
             <option value="">すべて</option>
             <?php foreach ($employees as $emp) {
                 $selected = $search_rewriting_person == $emp['employee_id'] ? 'selected' : '';
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>" . htmlspecialchars($emp['full_name']) . "</option>";
+                $display_name = htmlspecialchars($emp['department'] . "/" . $emp['full_name']);
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "' $selected>$display_name</option>";
             } ?>
         </select>
     </div>
@@ -481,6 +518,7 @@ function exportCSV() {
         <th>書類ステータス</th>
         <th>書換ステータス</th>
         <th>印鑑証明ステータス</th>
+        <th>発送ステータス</th>
         <th>メモ</th>
         <th>担当者1</th>
         <th>担当者2</th>
@@ -507,6 +545,7 @@ function exportCSV() {
             echo "<td>" . htmlspecialchars($row['document_status'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['rewrite_status'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['seal_certificate_status'] ?? '') . "</td>";
+            echo "<td>" . htmlspecialchars($row['shipping_status'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['memo'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['sales_rep_1'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['sales_rep_2'] ?? '') . "</td>";
@@ -527,7 +566,7 @@ function exportCSV() {
             echo "</tr>";
         }
     } else {
-        echo "<tr><td colspan='21'>データが見つかりません。</td></tr>";
+        echo "<tr><td colspan='22'>データが見つかりません。</td></tr>";
     }
     ?>
 </table>
