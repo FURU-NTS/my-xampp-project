@@ -19,6 +19,7 @@ try {
     $document_status = !empty($_POST['document_status']) ? $_POST['document_status'] : null;
     $rewrite_status = !empty($_POST['rewrite_status']) ? $_POST['rewrite_status'] : null;
     $seal_certificate_status = !empty($_POST['seal_certificate_status']) ? $_POST['seal_certificate_status'] : null;
+    $shipping_status = !empty($_POST['shipping_status']) ? $_POST['shipping_status'] : null;
     $memo = !empty($_POST['memo']) ? $_POST['memo'] : null;
     $sales_rep_id = !empty($_POST['sales_rep_id']) ? $_POST['sales_rep_id'] : null;
     $sales_rep_id_2 = !empty($_POST['sales_rep_id_2']) ? $_POST['sales_rep_id_2'] : null;
@@ -30,22 +31,27 @@ try {
 
     if (empty($id)) throw new Exception('受注IDが指定されていません');
 
-    // デバッグ用に送信データをログ出力
+    // バリデーション追加
+    if ($construction_status && !in_array($construction_status, ['待ち', '与信待ち', '残あり', '完了', '回収待ち', '回収完了'])) {
+        throw new Exception('無効な工事ステータスです: ' . $construction_status);
+    }
+
     error_log("POST data: " . print_r($_POST, true));
     error_log("Prepared values: id=$id, sales_rep_id_3=" . ($sales_rep_id_3 === null ? 'NULL' : $sales_rep_id_3));
 
     $stmt = $conn->prepare("UPDATE orders SET 
         customer_name = ?, customer_type = ?, order_date = ?, monthly_fee = ?, total_payments = ?, 
         negotiation_status = ?, construction_status = ?, credit_status = ?, document_status = ?, 
-        rewrite_status = ?, seal_certificate_status = ?, memo = ?, sales_rep_id = ?, sales_rep_id_2 = ?, 
-        sales_rep_id_3 = ?, sales_rep_id_4 = ?, appointment_rep_id_1 = ?, appointment_rep_id_2 = ?, 
-        rewriting_person_id = ? WHERE id = ?");
+        rewrite_status = ?, seal_certificate_status = ?, shipping_status = ?, memo = ?, 
+        sales_rep_id = ?, sales_rep_id_2 = ?, sales_rep_id_3 = ?, sales_rep_id_4 = ?, 
+        appointment_rep_id_1 = ?, appointment_rep_id_2 = ?, rewriting_person_id = ? 
+        WHERE id = ?");
     $stmt->execute([
         $customer_name, $customer_type, $order_date, $monthly_fee, $total_payments, 
         $negotiation_status, $construction_status, $credit_status, $document_status, 
-        $rewrite_status, $seal_certificate_status, $memo, $sales_rep_id, $sales_rep_id_2, 
-        $sales_rep_id_3, $sales_rep_id_4, $appointment_rep_id_1, $appointment_rep_id_2, 
-        $rewriting_person_id, $id
+        $rewrite_status, $seal_certificate_status, $shipping_status, $memo, 
+        $sales_rep_id, $sales_rep_id_2, $sales_rep_id_3, $sales_rep_id_4, 
+        $appointment_rep_id_1, $appointment_rep_id_2, $rewriting_person_id, $id
     ]);
 
     error_log("Order updated successfully: ID = $id");

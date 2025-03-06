@@ -5,7 +5,7 @@ include_once 'header.php';
 
 try {
     $conn = getDBConnection();
-    $employees_stmt = $conn->query("SELECT employee_id, full_name FROM employees");
+    $employees_stmt = $conn->query("SELECT employee_id, full_name, department FROM employees");
     $employees = $employees_stmt->fetchAll();
 
     $company_id = $_GET['company_id'] ?? '';
@@ -55,6 +55,8 @@ try {
             <option value="工事前キャンセル">工事前キャンセル</option>
             <option value="工事後キャンセル">工事後キャンセル</option>
             <option value="書換完了">書換完了</option>
+            <option value="承認完了">承認完了</option>
+            <option value="承認後キャンセル">承認後キャンセル</option>
         </select>
     </div>
     <div class="form-group">
@@ -66,6 +68,7 @@ try {
             <option value="残あり">残あり</option>
             <option value="完了">完了</option>
             <option value="回収待ち">回収待ち</option>
+            <option value="回収完了">回収完了</option>
         </select>
     </div>
     <div class="form-group">
@@ -112,11 +115,19 @@ try {
         </select>
     </div>
     <div class="form-group">
+        <label for="shipping_status">発送ステータス:</label>
+        <select id="shipping_status" name="shipping_status" onkeydown="preventEnterSubmit(event)">
+            <option value="">未設定</option>
+            <option value="準備中">準備中</option>
+            <option value="発送済">発送済</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="sales_rep_id">担当者1:</label>
         <select id="sales_rep_id" name="sales_rep_id" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -125,7 +136,7 @@ try {
         <select id="sales_rep_id_2" name="sales_rep_id_2" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -134,7 +145,7 @@ try {
         <select id="sales_rep_id_3" name="sales_rep_id_3" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -143,7 +154,7 @@ try {
         <select id="sales_rep_id_4" name="sales_rep_id_4" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -152,7 +163,7 @@ try {
         <select id="appointment_rep_id_1" name="appointment_rep_id_1" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -161,7 +172,7 @@ try {
         <select id="appointment_rep_id_2" name="appointment_rep_id_2" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>
@@ -170,7 +181,7 @@ try {
         <select id="rewriting_person_id" name="rewriting_person_id" onkeydown="preventEnterSubmit(event)">
             <option value="">選択なし</option>
             <?php foreach ($employees as $emp) {
-                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['full_name']) . "</option>";
+                echo "<option value='" . htmlspecialchars($emp['employee_id']) . "'>" . htmlspecialchars($emp['department'] . "/" . $emp['full_name']) . "</option>";
             } ?>
         </select>
     </div>

@@ -8,22 +8,41 @@ try {
     if (!validateCsrfToken($_POST['csrf_token'] ?? '')) throw new Exception('CSRFトークンが無効です');
 
     $order_id = $_POST['order_id'] ?? '';
-    $sales_rep_id = $_POST['sales_rep_id'] ?? '';
-    $points = $_POST['points'] ?? '';
+    $employees = $_POST['employees'] ?? [];
 
-    if (empty($order_id) || empty($sales_rep_id) || empty($points)) throw new Exception('すべての必須項目を入力してください');
-    if (!is_numeric($points) || $points < 0) throw new Exception('ポイントは0以上の数値を入力してください');
+    if (empty($order_id) || empty($employees)) {
+        throw new Exception('必須項目を入力してください');
+    }
 
     $stmt = $conn->prepare(
-        "INSERT INTO sales_points (order_id, sales_rep_id, points) 
-         VALUES (?, ?, ?)"
+        "INSERT INTO sales_points (order_id, employee_id, points, rewrite_date, points_granted_month, memo)
+         VALUES (?, ?, ?, ?, ?, ?)"
     );
-    $stmt->execute([$order_id, $sales_rep_id, $points]);
+
+    foreach ($employees as $emp) {
+        $employee_id = $emp['employee_id'] ?? '';
+        $points = $emp['points'] ?? '';
+        $rewrite_date = !empty($emp['rewrite_date']) ? $emp['rewrite_date'] : null;
+        $points_granted_month = !empty($emp['points_granted_month']) ? $emp['points_granted_month'] : null;
+        $memo = !empty($emp['memo']) ? $emp['memo'] : null;
+
+        if (empty($employee_id) || $points === '') {
+            throw new Exception('担当者またはポイントが未入力です');
+        }
+        if (!is_numeric($points) || $points < 0) throw new Exception('ポイントは0以上の整数を入力してください');
+        if ($points_granted_month && !preg_match('/^\d{4}-\d{2}$/', $points_granted_month)) {
+            throw new Exception('ポイント付与月はYYYY-MM形式で入力してください');
+        }
+
+        $stmt->execute([
+            $order_id, $employee_id, $points, $rewrite_date, $points_granted_month, $memo
+        ]);
+    }
 
     header('Location: sales_points_list.php?status=success&message=ポイントが追加されました');
     exit;
 } catch (Exception $e) {
-    header('Location: add_sales_points.php?status=error&message=' . urlencode($e->getMessage()));
+    header('Location: add_sales_points.php?order_id=' . urlencode($order_id) . '&status=error&message=' . urlencode($e->getMessage()));
     exit;
 }
 ?>

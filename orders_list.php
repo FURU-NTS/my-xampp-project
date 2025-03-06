@@ -43,7 +43,8 @@ try {
               (SELECT COALESCE(SUM(COALESCE(od.mobile_revision, 0) + COALESCE(od.monitor_total, 0) + COALESCE(od.service_total, 0)), 0)
                FROM order_details od WHERE od.order_id = o.id) AS revision_total_calc,
               (SELECT COUNT(*) FROM order_details od WHERE od.order_id = o.id) AS details_count,
-              (SELECT od.id FROM order_details od WHERE od.order_id = o.id LIMIT 1) AS detail_id
+              (SELECT od.id FROM order_details od WHERE od.order_id = o.id LIMIT 1) AS detail_id,
+              (SELECT COUNT(*) FROM sales_points sp WHERE sp.order_id = o.id) AS points_count
               FROM orders o 
               LEFT JOIN employees e1 ON o.sales_rep_id = e1.employee_id 
               LEFT JOIN employees e2 ON o.sales_rep_id_2 = e2.employee_id 
@@ -139,7 +140,6 @@ try {
     $stmt = $conn->prepare($query);
     $stmt->execute($params);
     $orders = $stmt->fetchAll();
-
     if ($export_csv) {
         ob_end_clean();
         header('Content-Type: text/csv; charset=utf-8');
@@ -230,7 +230,7 @@ try {
             border: 1px solid #ddd; 
             padding: 8px; 
             text-align: left; 
-            white-space: normal; /* タイトル折り返し */
+            white-space: normal;
             overflow: hidden; 
             text-overflow: ellipsis; 
             background-color: #f2f2f2; 
@@ -240,25 +240,21 @@ try {
             border: 1px solid #ddd; 
             padding: 8px; 
             text-align: left; 
-            white-space: nowrap; /* デフォルトは折り返さない */
+            white-space: nowrap;
             overflow: hidden; 
             text-overflow: ellipsis; 
         }
-        /* 受注日、顧客名、メモのデータだけ折り返し */
-        td:nth-child(1), /* 受注日 */
-        td:nth-child(2), /* 顧客名 */
-        td:nth-child(14) { /* メモ */
+        td:nth-child(1), td:nth-child(2), td:nth-child(4), td:nth-child(14), td:nth-child(22) { /* 受注日、顧客名、月額、メモ、アクション */
             white-space: normal;
         }
-        /* ステータス列に背景色 */
-        th:nth-child(7), td:nth-child(7), /* 商談ステータス */
-        th:nth-child(8), td:nth-child(8), /* 工事ステータス */
-        th:nth-child(9), td:nth-child(9), /* 与信ステータス */
-        th:nth-child(10), td:nth-child(10), /* 書類ステータス */
-        th:nth-child(11), td:nth-child(11), /* 書換ステータス */
-        th:nth-child(12), td:nth-child(12), /* 印鑑証明ステータス */
-        th:nth-child(13), td:nth-child(13) { /* 発送ステータス */
-            background-color: #e6f3ff; /* 薄い青 */
+        th:nth-child(7), td:nth-child(7),
+        th:nth-child(8), td:nth-child(8),
+        th:nth-child(9), td:nth-child(9),
+        th:nth-child(10), td:nth-child(10),
+        th:nth-child(11), td:nth-child(11),
+        th:nth-child(12), td:nth-child(12),
+        th:nth-child(13), td:nth-child(13) {
+            background-color: #e6f3ff;
         }
         th:nth-child(1), td:nth-child(1) { width: 5%; }
         th:nth-child(2), td:nth-child(2) { width: 15%; }
@@ -350,6 +346,7 @@ try {
             <option value="残あり" <?php echo $search_construction_status === '残あり' ? 'selected' : ''; ?>>残あり</option>
             <option value="完了" <?php echo $search_construction_status === '完了' ? 'selected' : ''; ?>>完了</option>
             <option value="回収待ち" <?php echo $search_construction_status === '回収待ち' ? 'selected' : ''; ?>>回収待ち</option>
+            <option value="回収完了" <?php echo $search_construction_status === '回収完了' ? 'selected' : ''; ?>>回収完了</option>
         </select>
     </div>
     <div class="form-group">
@@ -486,24 +483,6 @@ try {
         <input type="button" value="CSVダウンロード" onclick="exportCSV();">
     </div>
 </form>
-
-<script>
-function preventEnterSubmit(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-    }
-}
-
-function exportCSV() {
-    var form = document.getElementById('searchForm');
-    var url = new URL(form.action);
-    var params = new URLSearchParams(new FormData(form));
-    params.set('export_csv', '1');
-    url.search = params.toString();
-    window.location.href = url.toString();
-}
-</script>
-
 <table>
     <tr>
         <th>受注日</th>
@@ -562,6 +541,13 @@ function exportCSV() {
             } elseif ($row['detail_id']) {
                 echo " | <a href='edit_order_details.php?id=" . htmlspecialchars($row['detail_id']) . "'>詳細編集</a>";
             }
+            if (in_array($row['construction_status'], ['残あり', '完了', '回収待ち', '回収完了'])) {
+                if ($row['points_count'] > 0) {
+                    echo " | <a href='sales_points_list.php'>ポイント一覧</a>";
+                } else {
+                    echo " | <a href='add_sales_points.php?order_id=" . htmlspecialchars($row['id']) . "'>ポイント追加</a>";
+                }
+            }
             echo "</td>";
             echo "</tr>";
         }
@@ -570,6 +556,23 @@ function exportCSV() {
     }
     ?>
 </table>
+
+<script>
+function preventEnterSubmit(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+    }
+}
+
+function exportCSV() {
+    var form = document.getElementById('searchForm');
+    var url = new URL(form.action);
+    var params = new URLSearchParams(new FormData(form));
+    params.set('export_csv', '1');
+    url.search = params.toString();
+    window.location.href = url.toString();
+}
+</script>
 </body>
 </html>
 <?php
