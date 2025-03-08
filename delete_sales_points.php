@@ -68,7 +68,12 @@ try {
             <tr>
                 <th>担当者</th>
                 <th>ポイント</th>
+                <th>紹介ポイント</th>
+                <th>車輛ポイント</th>
                 <th>書き換え日</th>
+                <th>撤去ポイント</th> <!-- 追加 -->
+                <th>ポイント修正</th> <!-- 追加 -->
+                <th>報奨金修正</th> <!-- 追加 -->
                 <th>ポイント付与月</th>
                 <th>メモ</th>
             </tr>
@@ -76,7 +81,12 @@ try {
                 <tr>
                     <td><?php echo htmlspecialchars($point['employee_name'] ?? '未設定'); ?></td>
                     <td><?php echo htmlspecialchars($point['points'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($point['referral_points'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($point['vehicle_points'] ?? ''); ?></td>
                     <td><?php echo htmlspecialchars($point['rewrite_date'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($point['removal_points'] ?? ''); ?></td> <!-- 追加 -->
+                    <td><?php echo htmlspecialchars($point['points_revision'] ?? ''); ?></td> <!-- 追加 -->
+                    <td><?php echo htmlspecialchars($point['bonus_revision'] ?? ''); ?></td> <!-- 追加 -->
                     <td><?php echo htmlspecialchars($point['points_granted_month'] ?? ''); ?></td>
                     <td><?php echo htmlspecialchars($point['memo'] ?? ''); ?></td>
                 </tr>

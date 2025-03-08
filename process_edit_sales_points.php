@@ -16,23 +16,26 @@ try {
 
     $conn->beginTransaction();
 
-    // 既存データを削除
     $delete_stmt = $conn->prepare("DELETE FROM sales_points WHERE order_id = ?");
     $delete_stmt->execute([$order_id]);
 
-    // 新データを挿入
     $insert_stmt = $conn->prepare(
-        "INSERT INTO sales_points (order_id, employee_id, points, rewrite_date, removal_points, 
-                                   points_revision, points_granted_month, points_changed_month, memo)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO sales_points (order_id, employee_id, points, referral_points, vehicle_points, new_customer_bonus_no_appt, bonus, rewrite_date, removal_points, 
+                                   points_revision, bonus_revision, points_granted_month, points_changed_month, memo)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     foreach ($employees as $emp) {
         $employee_id = $emp['employee_id'] ?? '';
         $points = $emp['points'] ?? '';
+        $referral_points = $emp['referral_points'] ?? 0;
+        $vehicle_points = $emp['vehicle_points'] ?? 0;
+        $new_customer_bonus_no_appt = $emp['new_customer_bonus_no_appt'] ?? null;
+        $bonus = $emp['bonus'] ?? null;
         $rewrite_date = !empty($emp['rewrite_date']) ? $emp['rewrite_date'] : null;
         $removal_points = !empty($emp['removal_points']) ? $emp['removal_points'] : null;
         $points_revision = !empty($emp['points_revision']) ? $emp['points_revision'] : null;
+        $bonus_revision = !empty($emp['bonus_revision']) ? $emp['bonus_revision'] : null; // 追加
         $points_granted_month = !empty($emp['points_granted_month']) ? $emp['points_granted_month'] : null;
         $points_changed_month = !empty($emp['points_changed_month']) ? $emp['points_changed_month'] : null;
         $memo = !empty($emp['memo']) ? $emp['memo'] : null;
@@ -41,11 +44,22 @@ try {
             throw new Exception('担当者またはポイントが未入力です');
         }
         if (!is_numeric($points) || $points < 0) throw new Exception('ポイントは0以上の整数を入力してください');
-        if ($removal_points !== null && (!is_numeric($removal_points) || $removal_points < 0)) {
-            throw new Exception('撤去ポイントは0以上の整数を入力してください');
+        if (!is_numeric($referral_points) || $referral_points < 0) throw new Exception('紹介ポイントは0以上の整数を入力してください');
+        if (!is_numeric($vehicle_points) || $vehicle_points < 0) throw new Exception('車輛ポイントは0以上の整数を入力してください');
+        if ($new_customer_bonus_no_appt !== null && $new_customer_bonus_no_appt !== '' && (!is_numeric($new_customer_bonus_no_appt) || $new_customer_bonus_no_appt < 0)) {
+            throw new Exception('新規ボーナス（アポ無）は0以上の整数を入力してください');
+        }
+        if ($bonus !== null && $bonus !== '' && (!is_numeric($bonus) || $bonus < 0)) {
+            throw new Exception('報奨金は0以上の整数を入力してください');
+        }
+        if ($removal_points !== null && (!is_numeric($removal_points) || $removal_points > 0)) {
+            throw new Exception('撤去ポイントはマイナスの整数を入力してください');
         }
         if ($points_revision !== null && !is_numeric($points_revision)) {
             throw new Exception('ポイント修正は整数を入力してください');
+        }
+        if ($bonus_revision !== null && !is_numeric($bonus_revision)) { // 追加
+            throw new Exception('報奨金修正は整数を入力してください');
         }
         if ($points_granted_month && !preg_match('/^\d{4}-\d{2}$/', $points_granted_month)) {
             throw new Exception('ポイント付与月はYYYY-MM形式で入力してください');
@@ -55,8 +69,8 @@ try {
         }
 
         $insert_stmt->execute([
-            $order_id, $employee_id, $points, $rewrite_date, $removal_points, $points_revision,
-            $points_granted_month, $points_changed_month, $memo
+            $order_id, $employee_id, $points, $referral_points, $vehicle_points, $new_customer_bonus_no_appt, $bonus, $rewrite_date, $removal_points, 
+            $points_revision, $bonus_revision, $points_granted_month, $points_changed_month, $memo
         ]);
     }
 

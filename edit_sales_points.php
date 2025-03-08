@@ -63,7 +63,7 @@ try {
         font-weight: bold;
         margin-bottom: 5px;
     }
-    .form-group input, .form-group textarea {
+    .form-group input, .form-group textarea, .form-group select {
         width: 100%;
         padding: 5px;
         box-sizing: border-box;
@@ -83,6 +83,7 @@ try {
     }
     .employee-table th {
         background-color: #f2f2f2;
+        font-size: 0.9em;
     }
     .button-group {
         text-align: center;
@@ -97,6 +98,14 @@ try {
         <input type="text" id="customer_name" name="customer_name" value="<?php echo htmlspecialchars($order['customer_name']); ?>" readonly>
     </div>
     <div class="form-group">
+        <label for="customer_type">客層:</label>
+        <select id="customer_type" name="customer_type" disabled>
+            <option value="新規" <?php echo $order['customer_type'] === '新規' ? 'selected' : ''; ?>>新規</option>
+            <option value="既存" <?php echo $order['customer_type'] === '既存' ? 'selected' : ''; ?>>既存</option>
+            <option value="旧顧客" <?php echo $order['customer_type'] === '旧顧客' ? 'selected' : ''; ?>>旧顧客</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="order_date">受注日:</label>
         <input type="text" id="order_date" name="order_date" value="<?php echo htmlspecialchars($order['order_date']); ?>" readonly>
     </div>
@@ -104,9 +113,14 @@ try {
         <tr>
             <th>担当者</th>
             <th>ポイント</th>
+            <th>紹介ポイント</th>
+            <th>車輛ポイント</th>
+            <th>新規ボーナス（アポ無し）</th>
+            <th>報奨金</th>
             <th>書き換え日</th>
             <th>撤去ポイント</th>
             <th>ポイント修正</th>
+            <th>報奨金修正</th>
             <th>ポイント付与月</th>
             <th>ポイント変更月</th>
             <th>メモ</th>
@@ -118,16 +132,22 @@ try {
             echo "<td><input type='hidden' name='employees[$index][employee_id]' value='" . htmlspecialchars($emp['id']) . "'>" 
                  . htmlspecialchars($emp['name']) . "</td>";
             echo "<td><input type='number' name='employees[$index][points]' min='0' value='" . htmlspecialchars($point['points'] ?? '') . "' required onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][referral_points]' min='0' value='" . htmlspecialchars($point['referral_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][vehicle_points]' min='0' value='" . htmlspecialchars($point['vehicle_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][new_customer_bonus_no_appt]' min='0' value='" . htmlspecialchars($point['new_customer_bonus_no_appt'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][bonus]' min='0' value='" . htmlspecialchars($point['bonus'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
             if ($index === 0) {
                 echo "<td><input type='date' name='employees[$index][rewrite_date]' id='rewrite_date' value='" . htmlspecialchars($point['rewrite_date'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
-                echo "<td><input type='number' name='employees[$index][removal_points]' min='0' value='" . htmlspecialchars($point['removal_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+                echo "<td><input type='number' name='employees[$index][removal_points]' max='0' value='" . htmlspecialchars($point['removal_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='number' name='employees[$index][points_revision]' value='" . htmlspecialchars($point['points_revision'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+                echo "<td><input type='number' name='employees[$index][bonus_revision]' value='" . htmlspecialchars($point['bonus_revision'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='text' name='employees[$index][points_granted_month]' id='points_granted_month' pattern='\d{4}-\d{2}' placeholder='YYYY-MM' value='" . htmlspecialchars($point['points_granted_month'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='text' name='employees[$index][points_changed_month]' id='points_changed_month' pattern='\d{4}-\d{2}' placeholder='YYYY-MM' value='" . htmlspecialchars($point['points_changed_month'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
             } else {
                 echo "<td><input type='date' name='employees[$index][rewrite_date]' readonly class='inherit-rewrite' value='" . htmlspecialchars($point['rewrite_date'] ?? '') . "'></td>";
-                echo "<td><input type='number' name='employees[$index][removal_points]' min='0' value='" . htmlspecialchars($point['removal_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+                echo "<td><input type='number' name='employees[$index][removal_points]' max='0' value='" . htmlspecialchars($point['removal_points'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='number' name='employees[$index][points_revision]' value='" . htmlspecialchars($point['points_revision'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
+                echo "<td><input type='number' name='employees[$index][bonus_revision]' value='" . htmlspecialchars($point['bonus_revision'] ?? '') . "' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='text' name='employees[$index][points_granted_month]' readonly class='inherit-granted' value='" . htmlspecialchars($point['points_granted_month'] ?? '') . "'></td>";
                 echo "<td><input type='text' name='employees[$index][points_changed_month]' readonly class='inherit-changed' value='" . htmlspecialchars($point['points_changed_month'] ?? '') . "'></td>";
             }

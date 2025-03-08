@@ -86,6 +86,10 @@ try {
         <input type="text" id="customer_name" name="customer_name" value="<?php echo htmlspecialchars($order['customer_name']); ?>" readonly>
     </div>
     <div class="form-group">
+        <label for="customer_type">客層:</label>
+        <input type="text" id="customer_type" name="customer_type" value="<?php echo htmlspecialchars($order['customer_type']); ?>" readonly>
+    </div>
+    <div class="form-group">
         <label for="order_date">受注日:</label>
         <input type="text" id="order_date" name="order_date" value="<?php echo htmlspecialchars($order['order_date']); ?>" readonly>
     </div>
@@ -93,6 +97,10 @@ try {
         <tr>
             <th>担当者</th>
             <th>ポイント</th>
+            <th>紹介ポイント</th>
+            <th>車輛ポイント</th>
+            <th>新規ボーナス（アポ無）</th>
+            <th>報奨金</th>
             <th>書き換え日</th>
             <th>ポイント付与月</th>
             <th>メモ</th>
@@ -102,7 +110,11 @@ try {
             echo "<tr>";
             echo "<td><input type='hidden' name='employees[$index][employee_id]' value='" . htmlspecialchars($emp['id']) . "'>" 
                  . htmlspecialchars($emp['name']) . "</td>";
-            echo "<td><input type='number' name='employees[$index][points]' min='0' required onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][points]' min='0' required oninput='updateBonus(this, $index)' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][referral_points]' min='0' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][vehicle_points]' min='0' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][new_customer_bonus_no_appt]' id='new_customer_bonus_no_appt_$index' min='0' onkeydown='preventEnterSubmit(event)'></td>";
+            echo "<td><input type='number' name='employees[$index][bonus]' min='0' onkeydown='preventEnterSubmit(event)'></td>";
             if ($index === 0) {
                 echo "<td><input type='date' name='employees[$index][rewrite_date]' id='rewrite_date' onkeydown='preventEnterSubmit(event)'></td>";
                 echo "<td><input type='text' name='employees[$index][points_granted_month]' id='points_granted_month' pattern='\d{4}-\d{2}' placeholder='YYYY-MM' onkeydown='preventEnterSubmit(event)'></td>";
@@ -140,6 +152,17 @@ document.addEventListener('DOMContentLoaded', function() {
         inheritGranteds.forEach(input => input.value = this.value);
     });
 });
+
+function updateBonus(input, index) {
+    const customerType = '<?php echo $order['customer_type']; ?>';
+    const points = parseInt(input.value) || 0;
+    const bonusField = document.getElementById('new_customer_bonus_no_appt_' + index);
+    if (customerType === '新規') {
+        bonusField.value = Math.round(points * 0.2);
+    } else {
+        bonusField.value = '';
+    }
+}
 </script>
 </body></html>
 <?php
